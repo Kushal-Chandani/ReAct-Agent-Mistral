@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mistral ReAct Agent</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Mistral ReAct Agent</h1>
+        <form action="/query" method="post">
+            <label for="query">Enter your query:</label>
+            <textarea id="query" name="query" rows="4" cols="50" required></textarea>
+            <button type="submit">Submit</button>
+        </form>
+        {% if query %}
+            <div class="response">
+                <h2>Query:</h2>
+                <pre>{{ query }}</pre>
+                <h2>Result:</h2>
+                <pre>{{ result }}</pre>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
