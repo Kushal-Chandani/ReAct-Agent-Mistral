@@ -1,0 +1,192 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Mistral ReAct Agent</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Mistral ReAct Agent</h1>
+        <form id="query-form">
+            <label for="query">Enter your query:</label>
+            <textarea id="query" name="query" rows="4" cols="50" required></textarea>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="response-container" style="display: none;">
+            <h2>Query:</h2>
+            <pre id="query-output"></pre>
+            <h2>Result:</h2>
+            <pre id="result-output"></pre>
+        </div>
+    </div>
+
+    <div id="confirmation-popup" class="popup">
+        <div class="popup-content">
+            <p id="confirmation-message">Are you sure you want to proceed with the transfer?</p>
+            <button id="confirm-button">Confirm</button>
+            <button id="cancel-button">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let tempQuery = '';
+
+        document.getElementById('query-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const query = document.getElementById('query').value;
+            if (query.toLowerCase().includes('transfer') || query.toLowerCase().includes('send') || query.toLowerCase().includes('pay')) {
+                tempQuery = query;
+                document.getElementById('confirmation-popup').style.display = 'flex';
+            } else {
+                submitQuery(query);
+            }
+        });
+
+        document.getElementById('confirm-button').addEventListener('click', function() {
+            submitQuery(tempQuery);
+            document.getElementById('confirmation-popup').style.display = 'none';
+        });
+
+        document.getElementById('cancel-button').addEventListener('click', function() {
+            document.getElementById('confirmation-popup').style.display = 'none';
+        });
+
+        function submitQuery(query) {
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'query': query
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'confirm') {
+                    document.getElementById('confirmation-message').innerText = data.message;
+                    document.getElementById('confirmation-popup').style.display = 'flex';
+                    document.getElementById('query').value = data.query; // Save the query for later confirmation
+                    // Save data for later confirmation
+                    document.getElementById('confirm-button').dataset.sender = data.data.sender;
+                    document.getElementById('confirm-button').dataset.receiver = data.data.receiver;
+                    document.getElementById('confirm-button').dataset.amount = data.data.amount;
+                } else {
+                    document.getElementById('query-output').innerText = data.query;
+                    document.getElementById('result-output').innerText = data.result;
+                    document.getElementById('response-container').style.display = 'block';
+                }
+            });
+        }
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mistral ReAct Agent</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Mistral ReAct Agent</h1>
+        <form id="name-form">
+            <label for="name">Enter your name:</label>
+            <input type="text" id="name" name="name" required>
+            <button type="submit">Submit</button>
+        </form>
+        <form id="query-form" style="display:none;">
+            <label for="query">Enter your query:</label>
+            <textarea id="query" name="query" rows="4" cols="50" required></textarea>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="loading-spinner" class="loading-spinner"></div>
+        <div id="response-container" style="display: none;">
+            <h2>Query:</h2>
+            <pre id="query-output"></pre>
+            <h2>Result:</h2>
+            <pre id="result-output"></pre>
+        </div>
+    </div>
+
+    <div id="confirmation-popup" class="popup">
+        <div class="popup-content">
+            <p id="confirmation-message">Are you sure you want to proceed with the transfer?</p>
+            <button id="confirm-button">Confirm</button>
+            <button id="cancel-button">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let tempQuery = '';
+        let userName = '';
+
+        document.getElementById('name-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            fetch('/check_name', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'name': name
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'found') {
+                    userName = name;
+                    document.getElementById('name-form').style.display = 'none';
+                    document.getElementById('query-form').style.display = 'block';
+                } else {
+                    alert('User not found');
+                }
+            });
+        });
+
+        document.getElementById('query-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const query = document.getElementById('query').value;
+            const personalizedQuery = `User: ${userName}, Query: ${query}`;
+            if (query.toLowerCase().includes('transfer') || query.toLowerCase().includes('send') || query.toLowerCase().includes('pay')) {
+                tempQuery = personalizedQuery;
+                document.getElementById('confirmation-popup').style.display = 'flex';
+            } else {
+                submitQuery(personalizedQuery);
+            }
+        });
+
+        document.getElementById('confirm-button').addEventListener('click', function() {
+            submitQuery(tempQuery);
+            document.getElementById('confirmation-popup').style.display = 'none';
+        });
+
+        document.getElementById('cancel-button').addEventListener('click', function() {
+            document.getElementById('confirmation-popup').style.display = 'none';
+        });
+
+        function submitQuery(query) {
+            document.getElementById('loading-spinner').style.display = 'block';
+            fetch('/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'query': query
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('query-output').innerText = data.query;
+                document.getElementById('result-output').innerText = data.result;
+                document.getElementById('response-container').style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html>
+
